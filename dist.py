@@ -119,25 +119,6 @@ def main():
     print "Adding %s as %s" % (pybindgen_dir, os.path.join(dist_dir, new_pybindgen_dir))
     tar_add_tree(tar, pybindgen_dir, os.path.join(dist_dir, new_pybindgen_dir), dir_excl, file_excl)
 
-    # add network simulation cradle
-    nsc_dir = config.getElementsByTagName("nsc")[0].getAttribute("dir")
-    new_nsc_dir = config.getElementsByTagName("nsc")[0].getAttribute("version")
-    assert new_nsc_dir.startswith("nsc")
-    new_config.getElementsByTagName("nsc")[0].setAttribute("dir", new_nsc_dir)    
-    def dir_excl(reldirpath, dirname):
-        if dirname[0] == '.':
-            return True
-        # FIXME: which files or directories to exclude for NSC?
-        return False
-    def file_excl(reldirpath, filename):
-        if filename.startswith('.'):
-            return True
-        if filename.endswith('~'):
-            return True
-        return False
-    print "Adding %s as %s" % (nsc_dir, os.path.join(dist_dir, new_nsc_dir))
-    tar_add_tree(tar, nsc_dir, os.path.join(dist_dir, new_nsc_dir), dir_excl, file_excl)
-
     # add NetAnim
     netanim_dir = config.getElementsByTagName("netanim")[0].getAttribute("dir");
     new_netanim_dir = config.getElementsByTagName("netanim")[0].getAttribute("version")

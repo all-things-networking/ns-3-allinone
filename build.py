@@ -9,10 +9,6 @@ import constants
 from util import run_command, fatal, CommandError
 
 
-def build_nsc():
-    run_command([sys.executable, 'scons.py'])
-    
-
 def build_netanim(qmakepath):
     qmake = 'qmake'
     qmakeFound = False
@@ -81,30 +77,12 @@ def build_ns3(config, build_examples, build_tests, args, build_options):
                 "--with-pybindgen", os.path.join("..", pybindgen.getAttribute("dir")),
         ])
 
-    try:
-        nsc, = config.getElementsByTagName("nsc")
-    except ValueError:
-        print "Note: configuring ns-3 without NSC"
-    else:
-        # Build NSC if the architecture supports it
-        if sys.platform not in ['linux2']:
-            arch = None
-        else:
-            arch = os.uname()[4]
-        if arch == 'x86_64' or arch == 'i686' or arch == 'i586' or arch == 'i486' or arch == 'i386':
-            cmd.extend(["--with-nsc", os.path.join("..", nsc.getAttribute("dir"))])
-        else:
-            print "Note: configuring ns-3 without NSC (architecture not supported)"
-
     run_command(cmd) # waf configure ...
     run_command([sys.executable, "waf", "build"] + build_options)
 
 
 def main(argv):
     parser = OptionParser()
-    parser.add_option('--disable-nsc',
-                      help=("Don't try to build NSC (built by default on Linux)"), action="store_true", default=False,
-                      dest='disable_nsc')
     parser.add_option('--disable-netanim',
                       help=("Don't try to build NetAnim (built by default)"), action="store_true", default=False,
                       dest='disable_netanim')
@@ -132,30 +110,6 @@ def main(argv):
 
     config = dom.parse(dot_config)
     dot_config.close()
-
-    if options.disable_nsc:
-        print "# Skip NSC (by user request)"
-        for node in config.getElementsByTagName("nsc"):
-            config.documentElement.removeChild(node)
-    elif sys.platform in ['darwin', 'win32']:
-        print "# Skip NSC (platform not supported)"
-    else:
-        nsc_config_elems = config.getElementsByTagName("nsc")
-        if nsc_config_elems:
-            nsc_config, = nsc_config_elems
-            nsc_dir = nsc_config.getAttribute("dir")
-            print "# Build NSC"
-            os.chdir(nsc_dir)
-            print "Entering directory `%s'" % nsc_dir
-            try:
-                try:
-                    build_nsc()
-                except CommandError:
-                    print "# Build NSC: failure (ignoring NSC)"
-                    config.documentElement.removeChild(nsc_config)
-            finally:
-                os.chdir(cwd)
-            print "Leaving directory `%s'" % nsc_dir
 
     if options.disable_netanim:
         print "# Skip NetAnimC (by user request)"

@@ -30,39 +30,6 @@ def get_ns3(ns3_branch):
 
     return ns3_dir
 
-    
-def get_regression_traces(ns3_dir, regression_branch):
-    print """
-    #
-    # Get the regression traces
-    #
-    """
-    # ns3_dir is the directory into which we cloned the repo
-    # regression_branch is the repo in which we will find the traces.  Variations like this should work:
-    #  ns-3-dev-ref-traces
-    #  craigdo/ns-3-dev-ref-traces
-    #  craigdo/ns-3-tap-ref-traces
-    regression_traces_dir = os.path.split(regression_branch)[-1]
-    regression_branch_url = constants.REGRESSION_TRACES_REPO + regression_branch
-
-    print "Synchronizing reference traces using Mercurial."
-    try:
-        if not os.path.exists(regression_traces_dir):
-            run_command(["hg", "clone", regression_branch_url, regression_traces_dir])
-        else:
-            run_command(["hg", "-q", "pull", "--cwd", regression_traces_dir, regression_branch_url])
-            run_command(["hg", "-q", "update", "--cwd", regression_traces_dir])
-    except OSError: # this exception normally means mercurial is not found
-        if not os.path.exists(regression_traces_dir_name):
-            traceball = regression_tbranch + constants.TRACEBALL_SUFFIX
-            print "Retrieving " + traceball + " from web."
-            urllib.urlretrieve(constants.REGRESSION_TRACES_URL + traceball, traceball)
-            run_command(["tar", "-xjf", traceball])
-            print "Done."
-
-    return regression_traces_dir
-
-
 def get_pybindgen(ns3_dir):
     print """
     #
@@ -184,70 +151,11 @@ def get_netanim(ns3_dir):
 
     return (constants.LOCAL_NETANIM_PATH, required_netanim_version)
 
-def get_nsc(ns3_dir):
-    print """
-    #
-    # Get NSC
-    #
-    """
-
-    # Skip downloading NSC on OS X due to HFS+ case insensitive issues
-    # Skip downloading NSC on Cygwin because of fundamental incompatibilities.
-    if sys.platform in ['darwin', 'cygwin']:
-        print "Architecture (%s) does not support NSC... skipping" % (sys.platform,)
-        raise RuntimeError
-
-    # (peek into the ns-3 wscript and extract the required nsc version)
-    try:
-        # For the recent versions
-        internet_stack_wscript = open(os.path.join(ns3_dir, "src", "internet", "wscript"), "rt")
-    except IOError:
-        # For the old versions (ns-3.10 and before)
-        internet_stack_wscript = open(os.path.join(ns3_dir, "src", "internet-stack", "wscript"), "rt")
-    required_nsc_version = None
-    for line in internet_stack_wscript:
-        if 'NSC_RELEASE_NAME' in line:
-            required_nsc_version = eval(line.split('=')[1].strip())
-            break
-    internet_stack_wscript.close()
-    if required_nsc_version is None:
-        fatal("Unable to detect NSC required version")
-    print "Required NSC version: ", required_nsc_version
-    
-    def nsc_clone():
-        print "Retrieving nsc from " + constants.NSC_REPO
-        run_command(['hg', 'clone', constants.NSC_REPO, constants.LOCAL_NSC_PATH])
-
-    def nsc_update():
-        print "Pulling nsc updates from " + constants.NSC_REPO
-        run_command(['hg', '--cwd', constants.LOCAL_NSC_PATH, 'pull', '-u', constants.NSC_REPO])
-
-    def nsc_download():
-        local_file = required_nsc_version + ".tar.bz2"
-        remote_file = constants.NSC_RELEASE_URL + "/" + local_file
-        print "Retrieving nsc from " + remote_file
-        urllib.urlretrieve(remote_file, local_file)
-        print "Uncompressing " + local_file
-        run_command(["tar", "-xjf", local_file])
-        print "Rename %s as %s" % (required_nsc_version, constants.LOCAL_NSC_PATH)
-        os.rename(required_nsc_version, constants.LOCAL_NSC_PATH)
-
-    if not os.path.exists(os.path.join(ns3_dir, '.hg')):
-        nsc_download()
-    elif not os.path.exists(constants.LOCAL_NSC_PATH):
-        nsc_clone()
-    else:
-        nsc_update()
-
-    return (constants.LOCAL_NSC_PATH, required_nsc_version)
-
 
 def main():
     parser = OptionParser()
     parser.add_option("-n", "--ns3-branch", dest="ns3_branch", default="ns-3-dev",
                       help="Name of the ns-3 repository", metavar="BRANCH_NAME")
-    parser.add_option("-r", "--regression-branch", dest="regression_branch", default="",
-                      help="Name of the ns-3 regression traces repository", metavar="REGRESSION_BRANCH_NAME")
     (options, dummy_args) = parser.parse_args()
 
     # first of all, change to the directory of the script
@@ -263,17 +171,6 @@ def main():
     ns3_config = config.documentElement.appendChild(config.createElement("ns-3"))
     ns3_config.setAttribute("dir", ns3_dir)
     ns3_config.setAttribute("branch", options.ns3_branch)
-
-    # -- if requested, download regression reference traces for NS-3 --
-    if options.regression_branch:
-        try:
-            traces_dir = get_regression_traces(ns3_dir, options.regression_branch)
-        except CommandError:
-            print " *** Did not fetch regression reference traces; regression testing will not be available."
-        else:
-            traces_config = config.documentElement.appendChild(config.createElement("ns-3-traces"))
-            traces_config.setAttribute("dir", traces_dir)
-            traces_config.setAttribute("branch", options.regression_branch)
 
     # -- download pybindgen --
     try:
@@ -295,16 +192,6 @@ def main():
 	netanim_config.setAttribute("dir", netanim_dir)
         netanim_config.setAttribute("version", netanim_version)
 
-    # -- download network simulation cradle --
-    try:
-        nsc_dir, nsc_version = get_nsc(ns3_dir)
-    except (CommandError, IOError, RuntimeError):
-        print " *** Did not fetch NSC; NSC will not be available."
-    else:
-        nsc_config = config.documentElement.appendChild(config.createElement("nsc"))
-        nsc_config.setAttribute("dir", nsc_dir)
-        nsc_config.setAttribute("version", nsc_version)
-    
     # write the config to a file
     dot_config = open(".config", "wt")
     config.writexml(dot_config, addindent="    ", newl="\n")

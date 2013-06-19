@@ -3,36 +3,17 @@ This is ns-3-allinone.
 If you have downloaded this in tarball release format, this directory
 contains some released ns-3 version, along with 3rd party components
 necessary to support all optional ns-3 features, such as Python
-bindings and Network Simulation Cradle.  In this case, just run the
+bindings and the Network Animator.  In this case, just run the
 script build.py; all the components, plus ns-3 itself, will thus be
-built.
+built.  This directory also contains the bake build tool, which allows
+access to several additional modules including the Network Simulation
+Cradle, Direct Code Execution environment, and click and openflow 
+extensions for ns-3.
 
-If, on the other hand, you have obtained this by cloning the mercurial
-repository, this directory only contains a few python scripts:
-
-  download.py:
-   
-     This script will take care of downloading all necessary
-     components, including pybindgen and NSC, along with cloning an
-     ns-3 repository.  By default, the main development ns-3 branch,
-     ns-3-dev, will be cloned, so most users should simply call:
-
-       ./download.py
-
-     but the ns-3-dev repository can be overridden via the -n
-     command line option.  For example:
-     
-       ./download.py -n jabraham3/netanim
-
-     will clone the repository http://code.nsnam.org/jabraham3/netanim
-     into the allinone directory.
-
-  build.py:
-
-     This script will get all external components that need to be
-     built, and then will build ns-3 using the downloaded components.
-
-       ./build.py
-
-     The most recently downloaded components will be built, according
-     to the .config file that is written by download.py.
+If you have downloaded this from mercurial, the download.py script will
+download bake, netanim, pybindgen, and ns-3-dev.  The usage to use
+basic ns-3 (netanim and ns-3-dev) is to type:
+./download.py
+./build.py
+and cd into ns-3-dev for further work.  Consult the bake documentation
+on how to use bake to access optional ns-3 components.
