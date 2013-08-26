@@ -15,3 +15,6 @@ NETANIM_REPO = "http://code.nsnam.org/netanim"
 NETANIM_RELEASE_URL = "http://www.nsnam.org/tools/netanim"
 
 LOCAL_NETANIM_PATH = "netanim"
+
+# bake
+BAKE_REPO = "http://code.nsnam.org/bake"

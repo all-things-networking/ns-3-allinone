@@ -137,6 +137,24 @@ def main():
     print "Adding %s as %s" % (netanim_dir, os.path.join(dist_dir, new_netanim_dir))
     tar_add_tree(tar, netanim_dir, os.path.join(dist_dir, new_netanim_dir), dir_excl, file_excl)
 
+    # add bake
+    bake_dir = config.getElementsByTagName("bake")[0].getAttribute("dir");
+    new_bake_dir = config.getElementsByTagName("bake")[0].getAttribute("version")
+    assert new_bake_dir.startswith("bake")
+    new_config.getElementsByTagName("bake")[0].setAttribute("dir", new_bake_dir)
+    def dir_excl(reldirpath, dirname):
+        if dirname[0] == '.':
+            return True
+        return False
+    def file_excl(reldirpath, filename):
+        if filename.startswith('.'):
+            return True
+        if filename.endswith('~'):
+            return True
+        return False
+    print "Adding %s as %s" % (bake_dir, os.path.join(dist_dir, new_bake_dir))
+    tar_add_tree(tar, bake_dir, os.path.join(dist_dir, new_bake_dir), dir_excl, file_excl)
+
     # add the build script files
     print "Adding the build script files"
     for filename in ["build.py", "constants.py", "util.py", "README"]:

@@ -151,6 +151,30 @@ def get_netanim(ns3_dir):
 
     return (constants.LOCAL_NETANIM_PATH, required_netanim_version)
 
+def get_bake(ns3_dir):
+    print """
+    #
+    # Get bake
+    #
+    """
+
+    def bake_clone():
+        print "Retrieving bake from " + constants.BAKE_REPO
+        run_command(['hg', 'clone', constants.BAKE_REPO])
+    def bake_download():
+        # Bake does not provide download tarballs; clone instead 
+        bake_clone()
+
+    def bake_update():
+        print "Pulling bake updates from " + constants.BAKE_REPO
+        run_command(['hg', '--cwd', 'bake', 'pull', '-u', constants.BAKE_REPO])
+
+    if not os.path.exists(os.path.join(ns3_dir, '.hg')):
+        bake_download()
+    elif not os.path.exists('bake'):
+        bake_clone()
+    else:
+        bake_update()
 
 def main():
     parser = OptionParser()
@@ -191,6 +215,16 @@ def main():
 	netanim_config = config.documentElement.appendChild(config.createElement("netanim"))
 	netanim_config.setAttribute("dir", netanim_dir)
         netanim_config.setAttribute("version", netanim_version)
+
+    # -- download bake --
+    try:
+	get_bake(ns3_dir)
+    except (CommandError, IOError, RuntimeError):
+	print " *** Did not fetch bake build tool."
+    else:
+	bake_config = config.documentElement.appendChild(config.createElement("bake"))
+	bake_config.setAttribute("dir", "bake")
+        bake_config.setAttribute("version", "bake")
 
     # write the config to a file
     dot_config = open(".config", "wt")
