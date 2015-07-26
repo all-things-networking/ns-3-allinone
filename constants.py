@@ -1,6 +1,6 @@
 
 NSNAM_CODE_BASE_URL = "http://code.nsnam.org/"
-PYBINDGEN_BRANCH = 'https://launchpad.net/pybindgen'
+PYBINDGEN_BRANCH = 'https://github.com/gjcarneiro/pybindgen.git'
 LOCAL_PYBINDGEN_PATH = 'pybindgen'
 
 #
