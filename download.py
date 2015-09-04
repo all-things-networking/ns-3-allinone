@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 import sys
 from optparse import OptionParser
 import os
@@ -12,33 +13,33 @@ from xml.dom import minidom as dom
 
 
 def get_ns3(ns3_branch):
-    print """
+    print("""
     #
     # Get NS-3
     #
-    """
+    """)
     ns3_dir = os.path.split(ns3_branch)[-1]
     ns3_branch_url = constants.NSNAM_CODE_BASE_URL + ns3_branch
 
     if not os.path.exists(ns3_dir):
-        print "Cloning ns-3 branch"
+        print("Cloning ns-3 branch")
         run_command(['hg', 'clone', ns3_branch_url, ns3_dir])
     else:
-        print "Updating ns-3 branch"
+        print("Updating ns-3 branch")
         run_command(['hg', '--cwd', ns3_dir, 'pull', '-u'])
 
     return ns3_dir
 
 
 def get_pybindgen(ns3_dir):
-    print """
+    print("""
     #
     # Get PyBindGen
     #
-    """
+    """)
 
     if sys.platform in ['cygwin']:
-        print "Architecture (%s) does not support PyBindGen ... skipping" % (sys.platform,)
+        print("Architecture (%s) does not support PyBindGen ... skipping" % (sys.platform,))
         raise RuntimeError
 
     # (peek into the ns-3 wscript and extract the required pybindgen version)
@@ -51,7 +52,7 @@ def get_pybindgen(ns3_dir):
             break
     if required_pybindgen_version is None:
         fatal("Unable to detect pybindgen required version")
-    print "Required pybindgen version: ", required_pybindgen_version
+    print("Required pybindgen version: ", required_pybindgen_version)
 
     # work around http_proxy handling bug in bzr
     # if 'http_proxy' in os.environ and 'https_proxy' not in os.environ:
@@ -65,25 +66,25 @@ def get_pybindgen(ns3_dir):
         rev = required_pybindgen_version
 
     if os.path.exists(constants.LOCAL_PYBINDGEN_PATH):
-        print "Trying to update pybindgen; this will fail if no network connection is available.  Hit Ctrl-C to skip."
+        print("Trying to update pybindgen; this will fail if no network connection is available.  Hit Ctrl-C to skip.")
 
         try:
             run_command(["git", "fetch", constants.PYBINDGEN_BRANCH],
                         cwd=constants.LOCAL_PYBINDGEN_PATH)
         except KeyboardInterrupt:
-            print "Interrupted; Python bindings will be disabled."
+            print("Interrupted; Python bindings will be disabled.")
         else:
-            print "Update was successful."
+            print("Update was successful.")
     else:
-        print "Trying to fetch pybindgen; this will fail if no network connection is available.  Hit Ctrl-C to skip."
+        print("Trying to fetch pybindgen; this will fail if no network connection is available.  Hit Ctrl-C to skip.")
         try:
             run_command(["git", "clone", constants.PYBINDGEN_BRANCH,
                         constants.LOCAL_PYBINDGEN_PATH])
         except KeyboardInterrupt:
-            print "Interrupted; Python bindings will be disabled."
+            print("Interrupted; Python bindings will be disabled.")
             shutil.rmtree(constants.LOCAL_PYBINDGEN_PATH, True)
             return False
-        print "Fetch was successful."
+        print("Fetch was successful.")
 
     run_command(["git", "checkout", rev, "-q"],
                 cwd=constants.LOCAL_PYBINDGEN_PATH)
@@ -96,14 +97,14 @@ def get_pybindgen(ns3_dir):
 
 
 def get_netanim(ns3_dir):
-    print """
+    print("""
     #
     # Get NetAnim
     #
-    """
+    """)
 
     if sys.platform in ['cygwin']:
-	print "Architecture (%s) does not support NetAnim... skipping" % (sys.platform)
+        print("Architecture (%s) does not support NetAnim... skipping" % (sys.platform))
         raise RuntimeError
 
     # (peek into the ns-3 wscript and extract the required netanim version)
@@ -111,7 +112,7 @@ def get_netanim(ns3_dir):
         # For the recent versions
         netanim_wscript = open(os.path.join(ns3_dir, "src", "netanim", "wscript"), "rt")
     except:
-        print "Unable to detect NetAnim required version.Skipping download"
+        print("Unable to detect NetAnim required version.Skipping download")
         pass
         return
 
@@ -123,25 +124,25 @@ def get_netanim(ns3_dir):
     netanim_wscript.close()
     if required_netanim_version is None:
         fatal("Unable to detect NetAnim required version")
-    print "Required NetAnim version: ", required_netanim_version
+    print("Required NetAnim version: ", required_netanim_version)
 
 
     def netanim_clone():
-        print "Retrieving NetAnim from " + constants.NETANIM_REPO
+        print("Retrieving NetAnim from " + constants.NETANIM_REPO)
         run_command(['hg', 'clone', constants.NETANIM_REPO, constants.LOCAL_NETANIM_PATH])
 
     def netanim_update():
-        print "Pulling NetAnim updates from " + constants.NETANIM_REPO
+        print("Pulling NetAnim updates from " + constants.NETANIM_REPO)
         run_command(['hg', '--cwd', constants.LOCAL_NETANIM_PATH, 'pull', '-u', constants.NETANIM_REPO])
 
     def netanim_download():
         local_file = required_netanim_version + ".tar.bz2"
         remote_file = constants.NETANIM_RELEASE_URL + "/" + local_file
-        print "Retrieving NetAnim from " + remote_file
+        print("Retrieving NetAnim from " + remote_file)
         urllib.urlretrieve(remote_file, local_file)
-        print "Uncompressing " + local_file
+        print("Uncompressing " + local_file)
         run_command(["tar", "-xjf", local_file])
-        print "Rename %s as %s" % (required_netanim_version, constants.LOCAL_NETANIM_PATH)
+        print("Rename %s as %s" % (required_netanim_version, constants.LOCAL_NETANIM_PATH))
         os.rename(required_netanim_version, constants.LOCAL_NETANIM_PATH)
 
     if not os.path.exists(os.path.join(ns3_dir, '.hg')):
@@ -155,21 +156,21 @@ def get_netanim(ns3_dir):
 
 
 def get_bake(ns3_dir):
-    print """
+    print("""
     #
     # Get bake
     #
-    """
+    """)
 
     def bake_clone():
-        print "Retrieving bake from " + constants.BAKE_REPO
+        print("Retrieving bake from " + constants.BAKE_REPO)
         run_command(['hg', 'clone', constants.BAKE_REPO])
     def bake_download():
         # Bake does not provide download tarballs; clone instead
         bake_clone()
 
     def bake_update():
-        print "Pulling bake updates from " + constants.BAKE_REPO
+        print("Pulling bake updates from " + constants.BAKE_REPO)
         run_command(['hg', '--cwd', 'bake', 'pull', '-u', constants.BAKE_REPO])
 
     if not os.path.exists(os.path.join(ns3_dir, '.hg')):
@@ -204,7 +205,7 @@ def main():
     try:
         pybindgen_dir, pybindgen_version = get_pybindgen(ns3_dir)
     except (CommandError, OSError, RuntimeError) as ex:
-        print " *** Did not fetch pybindgen ({}); python bindings will not be available.".format(ex)
+        print(" *** Did not fetch pybindgen ({}); python bindings will not be available.".format(ex))
     else:
         pybindgen_config = config.documentElement.appendChild(config.createElement("pybindgen"))
         pybindgen_config.setAttribute("dir", pybindgen_dir)
@@ -212,22 +213,22 @@ def main():
 
     # -- download NetAnim --
     try:
-	netanim_dir, netanim_version = get_netanim(ns3_dir)
+        netanim_dir, netanim_version = get_netanim(ns3_dir)
     except (CommandError, IOError, RuntimeError):
-	print " *** Did not fetch NetAnim offline animator. Please visit http://www.nsnam.org/wiki/index.php/NetAnim ."
+        print(" *** Did not fetch NetAnim offline animator. Please visit http://www.nsnam.org/wiki/index.php/NetAnim .")
     else:
-	netanim_config = config.documentElement.appendChild(config.createElement("netanim"))
-	netanim_config.setAttribute("dir", netanim_dir)
+        netanim_config = config.documentElement.appendChild(config.createElement("netanim"))
+        netanim_config.setAttribute("dir", netanim_dir)
         netanim_config.setAttribute("version", netanim_version)
 
     # -- download bake --
     try:
-	get_bake(ns3_dir)
+        get_bake(ns3_dir)
     except (CommandError, IOError, RuntimeError):
-	print " *** Did not fetch bake build tool."
+        print(" *** Did not fetch bake build tool.")
     else:
-	bake_config = config.documentElement.appendChild(config.createElement("bake"))
-	bake_config.setAttribute("dir", "bake")
+        bake_config = config.documentElement.appendChild(config.createElement("bake"))
+        bake_config.setAttribute("dir", "bake")
         bake_config.setAttribute("version", "bake")
 
     # write the config to a file

@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 import sys
 from optparse import OptionParser
 import os
@@ -37,7 +38,7 @@ def tar_add_tree(tar, srcdir, tgtdir, exclude_dir_cb, exclude_file_cb):
                 continue
             srcpath = os.path.join(dirpath, filename)
             tgtpath = os.path.join(tgtdir, reldirpath, filename)
-            #print srcpath, "=>", tgtpath
+            #print(srcpath, "=>", tgtpath)
             tar.add(srcpath, tgtpath)
             
 
@@ -52,7 +53,7 @@ def main():
     try:
         dot_config = open(".config", "rt")
     except IOError:
-        print >> sys.stderr, "** ERROR: missing .config file; you probably need to run the download.py script first."
+        print("** ERROR: missing .config file; you probably need to run the download.py script first.", file=sys.stderr)
         sys.exit(2)
 
     config = dom.parse(dot_config)
@@ -62,7 +63,7 @@ def main():
     ns3_dir = ns3_config.getAttribute("dir")
     ns3_version = open(os.path.join(ns3_dir, "VERSION"), "rt").readline().strip()
     
-    print "NS-3 version: %r" % (ns3_version,)
+    print("NS-3 version: %r" % (ns3_version,))
     dist_dir = "ns-allinone-%s" % ns3_version
     arch_name = "%s.tar.bz2" % dist_dir
 
@@ -95,7 +96,7 @@ def main():
         if filename.endswith('~'):
             return True
         return False
-    print "Adding %s as %s" % (ns3_dir, os.path.join(dist_dir, new_ns3_dir))
+    print("Adding %s as %s" % (ns3_dir, os.path.join(dist_dir, new_ns3_dir)))
     tar_add_tree(tar, ns3_dir, os.path.join(dist_dir, new_ns3_dir), dir_excl, file_excl)
 
     # add pybindgen
@@ -116,7 +117,7 @@ def main():
         if filename.endswith('~'):
             return True
         return False
-    print "Adding %s as %s" % (pybindgen_dir, os.path.join(dist_dir, new_pybindgen_dir))
+    print("Adding %s as %s" % (pybindgen_dir, os.path.join(dist_dir, new_pybindgen_dir)))
     tar_add_tree(tar, pybindgen_dir, os.path.join(dist_dir, new_pybindgen_dir), dir_excl, file_excl)
 
     # add NetAnim
@@ -134,7 +135,7 @@ def main():
         if filename.endswith('~'):
             return True
         return False
-    print "Adding %s as %s" % (netanim_dir, os.path.join(dist_dir, new_netanim_dir))
+    print("Adding %s as %s" % (netanim_dir, os.path.join(dist_dir, new_netanim_dir)))
     tar_add_tree(tar, netanim_dir, os.path.join(dist_dir, new_netanim_dir), dir_excl, file_excl)
 
     # add bake
@@ -152,11 +153,11 @@ def main():
         if filename.endswith('~'):
             return True
         return False
-    print "Adding %s as %s" % (bake_dir, os.path.join(dist_dir, new_bake_dir))
+    print("Adding %s as %s" % (bake_dir, os.path.join(dist_dir, new_bake_dir)))
     tar_add_tree(tar, bake_dir, os.path.join(dist_dir, new_bake_dir), dir_excl, file_excl)
 
     # add the build script files
-    print "Adding the build script files"
+    print("Adding the build script files")
     for filename in ["build.py", "constants.py", "util.py", "README"]:
         tar.add(filename, os.path.join(dist_dir, filename))
 
@@ -166,7 +167,7 @@ def main():
     new_config.writexml(new_config_file)
     tarinfo = tarfile.TarInfo(os.path.join(dist_dir, ".config"))
     tarinfo.mtime = time.time()
-    tarinfo.mode = 0644
+    tarinfo.mode = 0o644
     tarinfo.type = tarfile.REGTYPE
     tarinfo.size = new_config_file.tell()
     new_config_file.seek(0)

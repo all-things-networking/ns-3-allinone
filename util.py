@@ -1,8 +1,9 @@
+from __future__ import print_function
 import sys
 import subprocess
 
 def fatal(msg):
-    print >> sys.stderr, msg
+    print(msg, file=sys.stderr)
     sys.exit(2)
 
 class CommandError(Exception):
@@ -16,7 +17,7 @@ def run_command(*args, **kwargs):
     else:
         argv = None
     if argv is not None:
-        print " => ", ' '.join(argv)
+        print(" => ", ' '.join(argv))
 
     cmd = subprocess.Popen(*args, **kwargs)
     retval = cmd.wait()

@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 import sys
 from optparse import OptionParser
 import os
@@ -13,40 +14,40 @@ def build_netanim(qmakepath):
     qmake = 'qmake'
     qmakeFound = False
     try:
-	run_command([qmake, '-v'])
-	print "qmake found"
-	qmakeFound = True
+        run_command([qmake, '-v'])
+        print("qmake found")
+        qmakeFound = True
     except:
-	print "Could not find qmake in the default path"
+        print("Could not find qmake in the default path")
 
     try:
-	if qmakeFound == False:
-		run_command(['qmake-qt4', '-v'])
-		qmake = 'qmake-qt4'
-		print "qmake-qt4 found"
+        if qmakeFound == False:
+                run_command(['qmake-qt4', '-v'])
+                qmake = 'qmake-qt4'
+                print("qmake-qt4 found")
     except:
-	print "Could not find qmake-qt4 in the default path"
-	
+        print("Could not find qmake-qt4 in the default path")
+        
     if qmakepath:
-	print "Setting qmake to user provided path"
+        print("Setting qmake to user provided path")
         qmake = qmakepath
     try:    
-    	if sys.platform in ['darwin']:
-    		run_command([qmake, '-spec', 'macx-g++', 'NetAnim.pro'])
-    	else:
-    		run_command([qmake, 'NetAnim.pro'])
-    	run_command(['make'])
+        if sys.platform in ['darwin']:
+            run_command([qmake, '-spec', 'macx-g++', 'NetAnim.pro'])
+        else:
+            run_command([qmake, 'NetAnim.pro'])
+        run_command(['make'])
     except OSError:
-        print "Error building NetAnim. Ensure the path to qmake is correct."
-        print "Could not find qmake or qmake-qt4 in the default PATH."
-        print "Use ./build.py --qmake-path <Path-to-qmake>, if qmake is installed in a non-standard location"
-        print "Note: Some systems use qmake-qt4 instead of qmake"
-        print "Skipping NetAnim ...."
-	pass
+        print("Error building NetAnim. Ensure the path to qmake is correct.")
+        print("Could not find qmake or qmake-qt4 in the default PATH.")
+        print("Use ./build.py --qmake-path <Path-to-qmake>, if qmake is installed in a non-standard location")
+        print("Note: Some systems use qmake-qt4 instead of qmake")
+        print("Skipping NetAnim ....")
+        pass
     except:
-        print "Error building NetAnim."
-        print "Skipping NetAnim ...."
-	pass
+        print("Error building NetAnim.")
+        print("Skipping NetAnim ....")
+        pass
 
 def build_ns3(config, build_examples, build_tests, args, build_options):
     cmd = [sys.executable, "waf", "configure"] + args
@@ -71,7 +72,7 @@ def build_ns3(config, build_examples, build_tests, args, build_options):
     try:
         pybindgen, = config.getElementsByTagName("pybindgen")
     except ValueError:
-        print "Note: configuring ns-3 without pybindgen"
+        print("Note: configuring ns-3 without pybindgen")
     else:
         cmd.extend([
                 "--with-pybindgen", os.path.join("..", pybindgen.getAttribute("dir")),
@@ -105,44 +106,44 @@ def main(argv):
     try:
         dot_config = open(".config", "rt")
     except IOError:
-        print >> sys.stderr, "** ERROR: missing .config file; you probably need to run the download.py script first."
+        print("** ERROR: missing .config file; you probably need to run the download.py script first.", file=sys.stderr)
         sys.exit(2)
 
     config = dom.parse(dot_config)
     dot_config.close()
 
     if options.disable_netanim:
-        print "# Skip NetAnimC (by user request)"
+        print("# Skip NetAnimC (by user request)")
         for node in config.getElementsByTagName("netanim"):
             config.documentElement.removeChild(node)
     elif sys.platform in ['cygwin', 'win32']:
-        print "# Skip NetAnim (platform not supported)"
+        print("# Skip NetAnim (platform not supported)")
     else:
         netanim_config_elems = config.getElementsByTagName("netanim")
         if netanim_config_elems:
             netanim_config, = netanim_config_elems
             netanim_dir = netanim_config.getAttribute("dir")
-            print "# Build NetAnim"
+            print("# Build NetAnim")
             os.chdir(netanim_dir)
-            print "Entering directory `%s'" % netanim_dir
+            print("Entering directory `%s'" % netanim_dir)
             try:
                 try:
                     build_netanim(options.qmake_path)
                 except CommandError:
-                    print "# Build NetAnim: failure (ignoring NetAnim)"
+                    print("# Build NetAnim: failure (ignoring NetAnim)")
                     config.documentElement.removeChild(netanim_config)
             finally:
                 os.chdir(cwd)
-            print "Leaving directory `%s'" % netanim_dir
+            print("Leaving directory `%s'" % netanim_dir)
 
     if options.enable_examples:
-        print "# Building examples (by user request)"
+        print("# Building examples (by user request)")
         build_examples = True
     else:
         build_examples = False
 
     if options.enable_tests:
-        print "# Building tests (by user request)"
+        print("# Building tests (by user request)")
         build_tests = True
     else:
         build_tests = False
@@ -152,16 +153,16 @@ def main(argv):
     else:
         build_options = shlex.split(options.build_options)
 
-    print "# Build NS-3"
+    print("# Build NS-3")
     ns3_config, = config.getElementsByTagName("ns-3")
     d = os.path.join(os.path.dirname(__file__), ns3_config.getAttribute("dir"))
-    print "Entering directory `%s'" % d
+    print("Entering directory `%s'" % d)
     os.chdir(d)
     try:
         build_ns3(config, build_examples, build_tests, args, build_options)
     finally:
         os.chdir(cwd)
-    print "Leaving directory `%s'" % d
+    print("Leaving directory `%s'" % d)
 
 
     return 0
