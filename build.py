@@ -22,26 +22,23 @@ def build_netanim(qmakepath):
 
     try:
         if qmakeFound == False:
-                run_command(['qmake-qt4', '-v'])
-                qmake = 'qmake-qt4'
-                print("qmake-qt4 found")
+                run_command(['qmake-qt5', '-v'])
+                qmake = 'qmake-qt5'
+                print("qmake-qt5 found")
     except:
-        print("Could not find qmake-qt4 in the default path")
+        print("Could not find qmake-qt5 in the default path")
         
     if qmakepath:
         print("Setting qmake to user provided path")
         qmake = qmakepath
     try:    
-        if sys.platform in ['darwin']:
-            run_command([qmake, '-spec', 'macx-g++', 'NetAnim.pro'])
-        else:
-            run_command([qmake, 'NetAnim.pro'])
+        run_command([qmake, 'NetAnim.pro'])
         run_command(['make'])
     except OSError:
         print("Error building NetAnim. Ensure the path to qmake is correct.")
-        print("Could not find qmake or qmake-qt4 in the default PATH.")
+        print("Could not find qmake or qmake-qt5 in the default PATH.")
         print("Use ./build.py --qmake-path <Path-to-qmake>, if qmake is installed in a non-standard location")
-        print("Note: Some systems use qmake-qt4 instead of qmake")
+        print("Note: Some systems use qmake-qt5 instead of qmake")
         print("Skipping NetAnim ....")
         pass
     except:
