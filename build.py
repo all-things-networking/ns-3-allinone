@@ -28,6 +28,14 @@ def build_netanim(qmakepath):
     except:
         print("Could not find qmake-qt5 in the default path")
         
+    try:
+        if qmakeFound == False:
+                run_command(['qmake-qt4', '-v'])
+                qmake = 'qmake-qt4'
+                print("qmake-qt4 found")
+    except:
+        print("Could not find qmake-qt4 in the default path")
+        
     if qmakepath:
         print("Setting qmake to user provided path")
         qmake = qmakepath
