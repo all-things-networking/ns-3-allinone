@@ -18,15 +18,25 @@ def get_ns3(ns3_branch):
     # Get NS-3
     #
     """)
-    ns3_dir = os.path.split(ns3_branch)[-1]
-    ns3_branch_url = constants.NSNAM_CODE_BASE_URL + ns3_branch
+    ns3_dir = 'ns-3-dev'
+    if ns3_branch != "master":
+        ns3_dir = ns3_branch
 
     if not os.path.exists(ns3_dir):
-        print("Cloning ns-3 branch")
-        run_command(['hg', 'clone', ns3_branch_url, ns3_dir])
+        if ns3_branch == "master":
+            print("Cloning ns-3 development repository")
+            run_command(['git', 'clone', constants.NSNAM_CODE_BASE_URL])
+        else:
+            print("Cloning ns-3 development repository and checking out branch %s" % ns3_branch)
+            run_command(['git', 'clone', constants.NSNAM_CODE_BASE_URL, '--branch', ns3_branch, ns3_branch])
     else:
-        print("Updating ns-3 branch")
-        run_command(['hg', '--cwd', ns3_dir, 'pull', '-u'])
+        if ns3_branch == "master":
+            print("Updating ns-3 repository")
+            run_command(['git', '-C', ns3_dir, 'pull'])
+        else:
+            print("Suppressing update on existing %s directory containing a non-master branch" % ns3_branch)
+            print("Exiting...")
+            sys.exit(0)
 
     return ns3_dir
 
@@ -107,25 +117,22 @@ def get_netanim(ns3_dir):
         print("Architecture (%s) does not support NetAnim... skipping" % (sys.platform))
         raise RuntimeError
 
-    # (peek into the ns-3 wscript and extract the required netanim version)
-    try:
-        # For the recent versions
-        netanim_wscript = open(os.path.join(ns3_dir, "src", "netanim", "wscript"), "rt")
-    except:
-        print("Unable to detect NetAnim required version.Skipping download")
-        pass
-        return
-
     required_netanim_version = None
-    for line in netanim_wscript:
-        if 'NETANIM_RELEASE_NAME' in line:
-            required_netanim_version = eval(line.split('=')[1].strip())
-            break
-    netanim_wscript.close()
-    if required_netanim_version is None:
-        fatal("Unable to detect NetAnim required version")
-    print("Required NetAnim version: ", required_netanim_version)
-
+    # (peek into the ns-3 wscript and extract the required netanim version)
+    if ns3_dir != 'ns-3-dev':
+        try:
+            # For the recent versions
+            netanim_wscript = open(os.path.join(ns3_dir, "src", "netanim", "wscript"), "rt")
+            for line in netanim_wscript:
+                if 'NETANIM_RELEASE_NAME' in line:
+                    required_netanim_version = eval(line.split('=')[1].strip())
+                    break
+            print("Required NetAnim version: ", required_netanim_version)
+            netanim_wscript.close()
+        except:
+            print("Unable to detect NetAnim required version.Skipping download")
+            pass
+            return
 
     def netanim_clone():
         print("Retrieving NetAnim from " + constants.NETANIM_REPO)
@@ -142,10 +149,11 @@ def get_netanim(ns3_dir):
         urllib.urlretrieve(remote_file, local_file)
         print("Uncompressing " + local_file)
         run_command(["tar", "-xjf", local_file])
-        print("Rename %s as %s" % (required_netanim_version, constants.LOCAL_NETANIM_PATH))
-        os.rename(required_netanim_version, constants.LOCAL_NETANIM_PATH)
+        print("Create symlink from %s to %s" % (required_netanim_version, constants.LOCAL_NETANIM_PATH))
+        os.symlink(required_netanim_version, constants.LOCAL_NETANIM_PATH)
+        os.remove(local_file)
 
-    if not os.path.exists(os.path.join(ns3_dir, '.hg')):
+    if ns3_dir != 'ns-3-dev':
         netanim_download()
     elif not os.path.exists(constants.LOCAL_NETANIM_PATH):
         netanim_clone()
@@ -164,18 +172,13 @@ def get_bake(ns3_dir):
 
     def bake_clone():
         print("Retrieving bake from " + constants.BAKE_REPO)
-        run_command(['hg', 'clone', constants.BAKE_REPO])
-    def bake_download():
-        # Bake does not provide download tarballs; clone instead
-        bake_clone()
+        run_command(['git', 'clone', constants.BAKE_REPO])
 
     def bake_update():
         print("Pulling bake updates from " + constants.BAKE_REPO)
-        run_command(['hg', '--cwd', 'bake', 'pull', '-u', constants.BAKE_REPO])
+        run_command(['git', '-C', 'bake', 'pull'])
 
-    if not os.path.exists(os.path.join(ns3_dir, '.hg')):
-        bake_download()
-    elif not os.path.exists('bake'):
+    if not os.path.exists('bake'):
         bake_clone()
     else:
         bake_update()
@@ -183,7 +186,7 @@ def get_bake(ns3_dir):
 
 def main():
     parser = OptionParser()
-    parser.add_option("-n", "--ns3-branch", dest="ns3_branch", default="ns-3-dev",
+    parser.add_option("-n", "--ns3-branch", dest="ns3_branch", default="master",
                       help="Name of the ns-3 repository", metavar="BRANCH_NAME")
     (options, dummy_args) = parser.parse_args()
 
