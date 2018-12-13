@@ -3,3 +3,9 @@ bake
 ns-3*
 netanim*
 pybindgen*
+
+*.pyc
+*.diff
+*.orig
+*.patch
+*.rej
