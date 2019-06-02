@@ -1,5 +1,4 @@
-#! /usr/bin/env python
-from __future__ import print_function
+#! /usr/bin/env python3
 import sys
 from optparse import OptionParser
 import os
@@ -100,8 +99,13 @@ def get_pybindgen(ns3_dir):
                 cwd=constants.LOCAL_PYBINDGEN_PATH)
 
     ## This causes the version to be generated
-    run_command(["python", "setup.py", "clean"],
-                cwd=constants.LOCAL_PYBINDGEN_PATH)
+    try:
+        import setuptools
+        run_command(["python3", "setup.py", "clean"],
+                    cwd=constants.LOCAL_PYBINDGEN_PATH)
+    except ImportError:
+        print("Warning:  Pybindgen setup not successful, are setuptools installed?")
+        raise RuntimeError
 
     return (constants.LOCAL_PYBINDGEN_PATH, required_pybindgen_version)
 
@@ -208,7 +212,7 @@ def main():
     try:
         pybindgen_dir, pybindgen_version = get_pybindgen(ns3_dir)
     except (CommandError, OSError, RuntimeError) as ex:
-        print(" *** Did not fetch pybindgen ({}); python bindings will not be available.".format(ex))
+        print(" *** Warning:  Did not fetch or build pybindgen ({}); python bindings will not be available.".format(ex))
     else:
         pybindgen_config = config.documentElement.appendChild(config.createElement("pybindgen"))
         pybindgen_config.setAttribute("dir", pybindgen_dir)
