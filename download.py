@@ -3,7 +3,15 @@ import sys
 from optparse import OptionParser
 import os
 import shutil
-import urllib
+try:
+    import urllib.request
+except Exception as e:
+    if sys.version_info[0] == 2:
+        print("Python 3 required for download.py")
+        sys.exit(1)
+    else:
+        print("Exception %s upon import", e)
+        sys.exit(1)
 from glob import glob
 
 from util import run_command, fatal, CommandError
@@ -150,7 +158,7 @@ def get_netanim(ns3_dir):
         local_file = required_netanim_version + ".tar.bz2"
         remote_file = constants.NETANIM_RELEASE_URL + "/" + local_file
         print("Retrieving NetAnim from " + remote_file)
-        urllib.urlretrieve(remote_file, local_file)
+        urllib.request.urlretrieve(remote_file, local_file)
         print("Uncompressing " + local_file)
         run_command(["tar", "-xjf", local_file])
         print("Create symlink from %s to %s" % (required_netanim_version, constants.LOCAL_NETANIM_PATH))
