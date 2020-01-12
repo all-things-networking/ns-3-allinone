@@ -148,19 +148,23 @@ def get_netanim(ns3_dir):
 
     def netanim_clone():
         print("Retrieving NetAnim from " + constants.NETANIM_REPO)
-        run_command(['hg', 'clone', constants.NETANIM_REPO, constants.LOCAL_NETANIM_PATH])
+        run_command(['git', 'clone', constants.NETANIM_REPO, constants.LOCAL_NETANIM_PATH])
 
     def netanim_update():
         print("Pulling NetAnim updates from " + constants.NETANIM_REPO)
-        run_command(['hg', '--cwd', constants.LOCAL_NETANIM_PATH, 'pull', '-u', constants.NETANIM_REPO])
+        run_command(['git', '-C', constants.LOCAL_NETANIM_PATH, 'pull'])
 
     def netanim_download():
         local_file = required_netanim_version + ".tar.bz2"
-        remote_file = constants.NETANIM_RELEASE_URL + "/" + local_file
+        remote_file_path = required_netanim_version + "/" + "netanim-" + required_netanim_version + ".tar.bz2"
+        remote_file = constants.NETANIM_RELEASE_URL + "/" + remote_file_path
         print("Retrieving NetAnim from " + remote_file)
         urllib.request.urlretrieve(remote_file, local_file)
         print("Uncompressing " + local_file)
         run_command(["tar", "-xjf", local_file])
+        # the untar will unpack to a directory name prepended with 'netanim-'
+        archive_directory_name = "netanim-" + required_netanim_version
+        run_command(["mv", archive_directory_name, required_netanim_version])
         print("Create symlink from %s to %s" % (required_netanim_version, constants.LOCAL_NETANIM_PATH))
         os.symlink(required_netanim_version, constants.LOCAL_NETANIM_PATH)
         os.remove(local_file)

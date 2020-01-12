@@ -11,8 +11,8 @@ LOCAL_PYBINDGEN_PATH = 'pybindgen'
 TRACEBALL_SUFFIX = ".tar.bz2"
 
 # NetAnim
-NETANIM_REPO = "http://code.nsnam.org/netanim"
-NETANIM_RELEASE_URL = "http://www.nsnam.org/tools/netanim"
+NETANIM_REPO = "https://gitlab.com/nsnam/netanim.git"
+NETANIM_RELEASE_URL = "https://gitlab.com/nsnam/netanim/-/archive"
 
 LOCAL_NETANIM_PATH = "netanim"
 
