@@ -63,7 +63,7 @@ def get_pybindgen(ns3_dir):
     ns3_python_wscript = open(os.path.join(ns3_dir, "bindings", "python", "wscript"), "rt")
     required_pybindgen_version = None
     for line in ns3_python_wscript:
-        if 'REQUIRED_PYBINDGEN_VERSION' in line:
+        if line.startswith('REQUIRED_PYBINDGEN_VERSION'):
             required_pybindgen_version = eval(line.split('=')[1].strip())
             ns3_python_wscript.close()
             break
