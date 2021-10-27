@@ -234,7 +234,7 @@ def main():
     try:
         netanim_dir, netanim_version = get_netanim(ns3_dir)
     except (CommandError, IOError, RuntimeError):
-        print(" *** Did not fetch NetAnim offline animator. Please visit http://www.nsnam.org/wiki/index.php/NetAnim .")
+        print(" *** Did not fetch NetAnim offline animator. Please visit https://www.nsnam.org/wiki/NetAnim")
     else:
         netanim_config = config.documentElement.appendChild(config.createElement("netanim"))
         netanim_config.setAttribute("dir", netanim_dir)
