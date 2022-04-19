@@ -60,20 +60,16 @@ def get_pybindgen(ns3_dir):
         raise RuntimeError
 
     # (peek into the ns-3 wscript and extract the required pybindgen version)
-    ns3_python_wscript = open(os.path.join(ns3_dir, "bindings", "python", "wscript"), "rt")
+    ns3_pybindgen_version = open(os.path.join(ns3_dir, "bindings", "python", "_required_pybindgen_version.py"), "rt")
     required_pybindgen_version = None
-    for line in ns3_python_wscript:
-        if line.startswith('REQUIRED_PYBINDGEN_VERSION'):
+    for line in ns3_pybindgen_version:
+        if line.startswith('__required_pybindgen_version__'):
             required_pybindgen_version = eval(line.split('=')[1].strip())
-            ns3_python_wscript.close()
+            ns3_pybindgen_version.close()
             break
     if required_pybindgen_version is None:
         fatal("Unable to detect pybindgen required version")
     print("Required pybindgen version: ", required_pybindgen_version)
-
-    # work around http_proxy handling bug in bzr
-    # if 'http_proxy' in os.environ and 'https_proxy' not in os.environ:
-    #     os.environ['https_proxy'] = os.environ['http_proxy']
 
     if 'post' in required_pybindgen_version:
         # given a version like '0.17.0.post41+ngd10fa60', the last 7 characters
