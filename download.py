@@ -59,14 +59,29 @@ def get_pybindgen(ns3_dir):
         print("Architecture (%s) does not support PyBindGen ... skipping" % (sys.platform,))
         raise RuntimeError
 
-    # (peek into the ns-3 wscript and extract the required pybindgen version)
-    ns3_pybindgen_version = open(os.path.join(ns3_dir, "bindings", "python", "_required_pybindgen_version.py"), "rt")
+    # (peek into ns-3 and extract the required pybindgen version)
+    # In ns-3.36 and later, this is maintained in _required_pybindgen_version.py
     required_pybindgen_version = None
-    for line in ns3_pybindgen_version:
-        if line.startswith('__required_pybindgen_version__'):
-            required_pybindgen_version = eval(line.split('=')[1].strip())
-            ns3_pybindgen_version.close()
-            break
+    try:
+        ns3_pybindgen_version = open(os.path.join(ns3_dir, "bindings", "python", "_required_pybindgen_version.py"), "rt")
+        for line in ns3_pybindgen_version:
+            if line.startswith('__required_pybindgen_version__'):
+                required_pybindgen_version = eval(line.split('=')[1].strip())
+                ns3_pybindgen_version.close()
+                break
+    except:
+        pass
+    if required_pybindgen_version is None:
+        # In ns-3.35 and earlier, this is maintained in wscript 
+        try:
+            ns3_python_wscript = open(os.path.join(ns3_dir, "bindings", "python", "wscript"), "rt")
+            for line in ns3_python_wscript:
+                if line.startswith('REQUIRED_PYBINDGEN_VERSION'):
+                    required_pybindgen_version = eval(line.split('=')[1].strip())
+                    ns3_python_wscript.close()
+                    break
+        except:
+            pass
     if required_pybindgen_version is None:
         fatal("Unable to detect pybindgen required version")
     print("Required pybindgen version: ", required_pybindgen_version)
@@ -126,21 +141,36 @@ def get_netanim(ns3_dir):
         raise RuntimeError
 
     required_netanim_version = None
-    # (peek into the ns-3 wscript and extract the required netanim version)
+    # (peek into ns-3 and extract the required netanim version)
+    # In ns-3.36 and later, this is maintained in _required_netanim_version.py
     if ns3_dir != 'ns-3-dev':
+        # For the recent versions
         try:
-            # For the recent versions
-            netanim_wscript = open(os.path.join(ns3_dir, "src", "netanim", "wscript"), "rt")
-            for line in netanim_wscript:
-                if 'NETANIM_RELEASE_NAME' in line:
+            netanim_version_file = open(os.path.join(ns3_dir, "src", "netanim", "_required_netanim_version.py"), "rt")
+            for line in netanim_version_file:
+                if line.startswith('__required_netanim_version__'):
                     required_netanim_version = eval(line.split('=')[1].strip())
+                    netanim_version_file.close()
                     break
-            print("Required NetAnim version: ", required_netanim_version)
-            netanim_wscript.close()
         except:
-            print("Unable to detect NetAnim required version.Skipping download")
             pass
+        if required_netanim_version is None:
+            # In ns-3.35 and earlier, this is maintained in wscript 
+            try:
+                netanim_wscript = open(os.path.join(ns3_dir, "src", "netanim", "wscript"), "rt")
+                for line in netanim_wscript:
+                    if line.startswith('REQUIRED_PYBINDGEN_VERSION'):
+                        required_netanim_version = eval(line.split('=')[1].strip())
+                        netanim_wscript.close()
+                        break
+            except:
+                pass
+        if required_netanim_version is None:
+            print("Unable to detect NetAnim required version.Skipping download")
             return
+        else:
+            print("Required NetAnim version: ", required_netanim_version)
+        # continue below
 
     def netanim_clone():
         print("Retrieving NetAnim from " + constants.NETANIM_REPO)
