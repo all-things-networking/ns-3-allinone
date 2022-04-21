@@ -1,11 +1,11 @@
-#! /usr/bin/env python
-from __future__ import print_function
+#! /usr/bin/env python3
 import sys
 from optparse import OptionParser
 import os
 import tarfile
 from xml.dom import minidom as dom
-from cStringIO import StringIO
+from io import BytesIO
+from io import StringIO
 import time
 
 
@@ -171,8 +171,7 @@ def main():
     tarinfo.type = tarfile.REGTYPE
     tarinfo.size = new_config_file.tell()
     new_config_file.seek(0)
-    tar.addfile(tarinfo, new_config_file)
-    
+    tar.addfile(tarinfo, BytesIO(new_config_file.getvalue().encode('utf8')))
 
     tar.close()
 
