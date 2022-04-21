@@ -159,7 +159,7 @@ def get_netanim(ns3_dir):
             try:
                 netanim_wscript = open(os.path.join(ns3_dir, "src", "netanim", "wscript"), "rt")
                 for line in netanim_wscript:
-                    if line.startswith('REQUIRED_PYBINDGEN_VERSION'):
+                    if line.startswith('NETANIM_RELEASE_NAME'):
                         required_netanim_version = eval(line.split('=')[1].strip())
                         netanim_wscript.close()
                         break
