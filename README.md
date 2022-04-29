@@ -1,22 +1,32 @@
-This is ns-3-allinone.
+This is **_ns-3-allinone_**, a repository with some scripts to download
+and build the core components around the 
+[ns-3 network simulator](https://www.nsnam.org).
+More information about this can be found in the
+[ns-3 tutorial](https://www.nsnam.org/documentation/).
 
 If you have downloaded this in tarball release format, this directory
-contains some released ns-3 version, along with 3rd party components
-necessary to support two optional ns-3 features: Python
-bindings and the NetAnim network animator.  In this case, just run the
-script build.py; all the components, plus ns-3 itself, will thus be
-built.  If you want to build ns-3 examples and tests (a full ns-3 build),
+contains some released ns-3 version, along with third party components
+necessary to support two optional ns-3 features: a Python
+bindings generator named [pybindgen](https://github.com/gjcarneiro/pybindgen/)
+and the [NetAnim network animator](https://gitlab.com/nsnam/netanim/).
+In this case, just run the script `build.py`, which attempts to build 
+NetAnim and pybindgen (if dependencies are met) and then ns-3 itself.
+If you want to build ns-3 examples and tests (a full ns-3 build),
 instead type:
+```
 ./build.py --enable-examples --enable-tests
+```
 
-This directory also contains the bake build tool, which allows access to
+This directory also contains the [bake build tool](https://www.gitlab.com/nsnam/bake/), which allows access to
 other extensions of ns-3, including the Direct Code Execution environment,
-and click and openflow extensions for ns-3.  Consult the documentation
+and click and openflow extensions for ns-3.  Consult the ns-3 tutorial
 on how to use bake to access optional ns-3 components.
 
-If you have downloaded this from Git, the download.py script can be used to
+If you have downloaded this from Git, the `download.py` script can be used to
 download bake, netanim, pybindgen, and ns-3-dev.  The usage to use
 basic ns-3 (netanim and ns-3-dev) is to type:
+```
 ./download.py
 ./build.py --enable-examples --enable-tests
-and cd into ns-3-dev for further work.
+```
+and change directory to ns-3-dev for further work.
