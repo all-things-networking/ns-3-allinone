@@ -78,16 +78,26 @@ def main():
     new_ns3_dir = "ns-%s" % ns3_version
     new_config.getElementsByTagName("ns-3")[0].setAttribute("dir", new_ns3_dir)
     def dir_excl(reldirpath, dirname):
+        # Retain .vscode/
+        if reldirpath == '' and dirname == '.vscode':
+            return False
         if dirname[0] == '.':
             return True
         if reldirpath == '' and dirname == 'build':
             return True
         return False
     def file_excl(reldirpath, filename):
+        # Retain contrib
+        if reldirpath == 'contrib' and filename == '.gitignore':
+            return False
         # Retain directories in doc/[manual|tutorial|models]/source/_static/
         if filename == '.hidden':
             return False
         if filename == '.ns3rc':
+            return False
+        if filename == '.clang-format':
+            return False
+        if filename == '.editorconfig':
             return False
         if filename.startswith('.'):
             return True
