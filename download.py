@@ -48,87 +48,6 @@ def get_ns3(ns3_branch):
     return ns3_dir
 
 
-def get_pybindgen(ns3_dir):
-    print("""
-    #
-    # Get PyBindGen
-    #
-    """)
-
-    if sys.platform in ['cygwin']:
-        print("Architecture (%s) does not support PyBindGen ... skipping" % (sys.platform,))
-        raise RuntimeError
-
-    # (peek into ns-3 and extract the required pybindgen version)
-    # In ns-3.36 and later, this is maintained in _required_pybindgen_version.py
-    required_pybindgen_version = None
-    try:
-        ns3_pybindgen_version = open(os.path.join(ns3_dir, "bindings", "python", "_required_pybindgen_version.py"), "rt")
-        for line in ns3_pybindgen_version:
-            if line.startswith('__required_pybindgen_version__'):
-                required_pybindgen_version = eval(line.split('=')[1].strip())
-                ns3_pybindgen_version.close()
-                break
-    except:
-        pass
-    if required_pybindgen_version is None:
-        # In ns-3.35 and earlier, this is maintained in wscript 
-        try:
-            ns3_python_wscript = open(os.path.join(ns3_dir, "bindings", "python", "wscript"), "rt")
-            for line in ns3_python_wscript:
-                if line.startswith('REQUIRED_PYBINDGEN_VERSION'):
-                    required_pybindgen_version = eval(line.split('=')[1].strip())
-                    ns3_python_wscript.close()
-                    break
-        except:
-            pass
-    if required_pybindgen_version is None:
-        fatal("Unable to detect pybindgen required version")
-    print("Required pybindgen version: ", required_pybindgen_version)
-
-    if 'post' in required_pybindgen_version:
-        # given a version like '0.17.0.post41+ngd10fa60', the last 7 characters
-        # are part of a git hash, which should be enough to identify a revision
-        rev = required_pybindgen_version[-7:]
-    else:
-        rev = required_pybindgen_version
-
-    if os.path.exists(constants.LOCAL_PYBINDGEN_PATH):
-        print("Trying to update pybindgen; this will fail if no network connection is available.  Hit Ctrl-C to skip.")
-
-        try:
-            run_command(["git", "fetch", constants.PYBINDGEN_BRANCH],
-                        cwd=constants.LOCAL_PYBINDGEN_PATH)
-        except KeyboardInterrupt:
-            print("Interrupted; Python bindings will be disabled.")
-        else:
-            print("Update was successful.")
-    else:
-        print("Trying to fetch pybindgen; this will fail if no network connection is available.  Hit Ctrl-C to skip.")
-        try:
-            run_command(["git", "clone", constants.PYBINDGEN_BRANCH,
-                        constants.LOCAL_PYBINDGEN_PATH])
-        except KeyboardInterrupt:
-            print("Interrupted; Python bindings will be disabled.")
-            shutil.rmtree(constants.LOCAL_PYBINDGEN_PATH, True)
-            return False
-        print("Fetch was successful.")
-
-    run_command(["git", "checkout", rev, "-q"],
-                cwd=constants.LOCAL_PYBINDGEN_PATH)
-
-    ## This causes the version to be generated
-    try:
-        import setuptools
-        run_command(["python3", "setup.py", "clean"],
-                    cwd=constants.LOCAL_PYBINDGEN_PATH)
-    except ImportError:
-        print("Warning:  Pybindgen setup not successful, are setuptools installed?")
-        raise RuntimeError
-
-    return (constants.LOCAL_PYBINDGEN_PATH, required_pybindgen_version)
-
-
 def get_netanim(ns3_dir):
     print("""
     #
@@ -245,16 +164,6 @@ def main():
     ns3_config = config.documentElement.appendChild(config.createElement("ns-3"))
     ns3_config.setAttribute("dir", ns3_dir)
     ns3_config.setAttribute("branch", options.ns3_branch)
-
-    # -- download pybindgen --
-    try:
-        pybindgen_dir, pybindgen_version = get_pybindgen(ns3_dir)
-    except (CommandError, OSError, RuntimeError) as ex:
-        print(" *** Warning:  Did not fetch or build pybindgen ({}); python bindings will not be available.".format(ex))
-    else:
-        pybindgen_config = config.documentElement.appendChild(config.createElement("pybindgen"))
-        pybindgen_config.setAttribute("dir", pybindgen_dir)
-        pybindgen_config.setAttribute("version", pybindgen_version)
 
     # -- download NetAnim --
     try:
